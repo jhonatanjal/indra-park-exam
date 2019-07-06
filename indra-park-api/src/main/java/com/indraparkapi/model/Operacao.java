@@ -2,7 +2,10 @@ package com.indraparkapi.model;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 @Entity
 public class Operacao {
@@ -28,14 +31,26 @@ public class Operacao {
         this.estado = EstadoOperacao.ENTRADA;
     }
 
-    public BigDecimal finalizaOperacao() {
+    public void finalizaOperacao() {
         if (estado.equals(EstadoOperacao.SAIDA)) {
             throw new RuntimeException("Esta Operação ja esta finalizada");
         }
-        this.dataHoraSaida = LocalDateTime.now();
+        if (this.dataHoraSaida == null) {
+            this.dataHoraSaida = LocalDateTime.now();
+        }
         this.estado = EstadoOperacao.SAIDA;
+    }
 
-        return BigDecimal.TEN;
+    public BigDecimal calculaValorDoPeriodo() {
+        if (this.dataHoraSaida == null) {
+            this.dataHoraSaida = LocalDateTime.now();
+        }
+
+        BigDecimal minutos = BigDecimal.valueOf(MINUTES.between(this.dataHoraEntrada, this.dataHoraSaida));
+
+        BigDecimal resutado = minutos.divide(new BigDecimal(60), 2, RoundingMode.CEILING);
+
+        return resutado.multiply(this.veiculo.getModelo().getPrecoEstacionamentoPorHora());
     }
 
     public Long getId() {

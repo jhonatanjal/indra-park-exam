@@ -2,8 +2,8 @@ package com.indraparkapi.resources;
 
 import com.indraparkapi.dto.OperacaoDTO;
 import com.indraparkapi.dto.VeiculoDTO;
-import com.indraparkapi.model.Operacao;
 import com.indraparkapi.model.EstadoOperacao;
+import com.indraparkapi.model.Operacao;
 import com.indraparkapi.model.Veiculo;
 import com.indraparkapi.repository.OperacaoRepository;
 import com.indraparkapi.repository.VeiculoRepository;
@@ -16,7 +16,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -69,6 +72,25 @@ public class OperacaoResource {
         return operacoes;
     }
 
+    @GetMapping("/{id}/valorCobrado")
+    public ResponseEntity<?> valorEstacionamento(@PathVariable Long id) {
+        Optional<Operacao> operacaoOpt = operacaoRepository.findById(id);
+
+        if (!operacaoOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Operacao operacao = operacaoOpt.get();
+        BigDecimal valorDoPeriodo = operacao.calculaValorDoPeriodo();
+        operacaoRepository.save(operacao);
+
+        HashMap<String, BigDecimal> resposta = new HashMap<>();
+        resposta.put("valorDoPeriodo", valorDoPeriodo);
+
+        return ResponseEntity.ok(resposta);
+
+    }
+
     @PostMapping
     public ResponseEntity<?> entrada(@RequestBody VeiculoDTO veiculoDTO) {
         Operacao operacao = new Operacao(LocalDateTime.now());
@@ -80,8 +102,8 @@ public class OperacaoResource {
                 HttpStatus.CREATED);
     }
 
-    @PutMapping
-    public ResponseEntity<?> saida(@RequestParam String placa) {
+    @PutMapping("/{placa}")
+    public ResponseEntity<?> saida(@PathVariable String placa) {
         Optional<Veiculo> veiculo = veiculoRepository.findById(placa);
         if (!veiculo.isPresent()) {
             return ResponseEntity.notFound().build();
@@ -92,13 +114,9 @@ public class OperacaoResource {
         }
 
         Operacao operacao = operacaoOpt.get();
-        BigDecimal valorCobrado = operacao.finalizaOperacao();
+        operacao.finalizaOperacao();
         operacaoRepository.save(operacao);
 
-        HashMap<String, Object> resposta = new HashMap<>();
-        resposta.put("operacao", new OperacaoDTO(operacao));
-        resposta.put("cobranca", valorCobrado);
-
-        return new ResponseEntity<>(resposta, HttpStatus.OK);
+        return new ResponseEntity<>(new OperacaoDTO(operacao), HttpStatus.OK);
     }
 }

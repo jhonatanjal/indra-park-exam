@@ -1,8 +1,8 @@
 package com.indraparkapi.dto;
 
+import com.indraparkapi.model.EstadoOperacao;
 import com.indraparkapi.model.ModeloVeiculo;
 import com.indraparkapi.model.Operacao;
-import com.indraparkapi.model.EstadoOperacao;
 
 import java.time.LocalDateTime;
 
