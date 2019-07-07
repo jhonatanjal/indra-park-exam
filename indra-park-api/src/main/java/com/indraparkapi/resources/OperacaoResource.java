@@ -3,10 +3,12 @@ package com.indraparkapi.resources;
 import com.indraparkapi.dto.OperacaoDTO;
 import com.indraparkapi.dto.VeiculoDTO;
 import com.indraparkapi.model.EstadoOperacao;
+import com.indraparkapi.model.ModeloVeiculo;
 import com.indraparkapi.model.Operacao;
 import com.indraparkapi.model.Veiculo;
 import com.indraparkapi.repository.OperacaoRepository;
 import com.indraparkapi.repository.VeiculoRepository;
+import com.indraparkapi.util.EstatisticasUtil;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -88,6 +87,37 @@ public class OperacaoResource {
         resposta.put("valorDoPeriodo", valorDoPeriodo);
 
         return ResponseEntity.ok(resposta);
+
+    }
+
+    @GetMapping("/estatisticas")
+    public HashMap<String, Map<ModeloVeiculo, Integer>> estatisticasDaSemana() {
+        LocalDate dataDeHoje = LocalDate.now();
+
+        LocalDateTime hoje = dataDeHoje.atTime(23, 59);
+        LocalDateTime seteDiasAtras = dataDeHoje.minusDays(7).atTime(0, 0);
+
+
+        List<Operacao> operacoes = operacaoRepository.findByDataHoraEntradaIsBetween(seteDiasAtras, hoje);
+
+        return EstatisticasUtil.veiculosPorDia(operacoes);
+    }
+
+    @GetMapping("/{placa}/entrada")
+    public ResponseEntity<?> bustaOperacaoDeEntradoDoVeiculo(@PathVariable String placa) {
+        Optional<Operacao> operacao = buscaOperacaoEmAbertoPela(placa);
+        if (!operacao.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new OperacaoDTO(operacao.get()));
+    }
+
+    private Optional<Operacao> buscaOperacaoEmAbertoPela(String placa) {
+        Optional<Veiculo> veiculo = veiculoRepository.findById(placa);
+        if (!veiculo.isPresent()) {
+            return Optional.empty();
+        }
+        return veiculo.get().getOperacaoEmAberto();
 
     }
 
