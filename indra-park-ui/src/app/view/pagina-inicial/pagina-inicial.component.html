@@ -1,0 +1,11 @@
+<div class="pagina-inicial-container">
+  <app-dashboard-operacoes></app-dashboard-operacoes>
+  
+  <div class="pagina-inicial-botoes">
+    <button mat-raised-button color="primary" routerLink="/entrada">
+      Realizar Entrada
+    </button>
+  </div>
+
+  <app-lista-operacoes [operacoes]="operacoes" (filtro)="onFiltro($event)"></app-lista-operacoes>
+</div>

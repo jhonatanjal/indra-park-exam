@@ -1,24 +1,38 @@
-
-<div class="main-container" >
-  <mat-toolbar color="primary" class="topbar telative">
-
-    <button mat-button [matMenuTriggerFor]="menu">Menu</button>
+<div class="main-container">
+  <mat-toolbar color="primary" class="topbar telative topbar-fixed">
+    <!-- <button mat-button [matMenuTriggerFor]="menu">Menu</button>
     <mat-menu #menu="matMenu">
-      <button [routerLink]="['/test']" mat-menu-item>Test</button>
-    </mat-menu>
+      <button [routerLink]="['/']" mat-menu-item>Página Inicial</button>
+      <button [routerLink]="['/entrada']" mat-menu-item>
+        Realizar entrada
+      </button>
+      <button [routerLink]="['/saida']" mat-menu-item>Realizar saida</button>
+    </mat-menu> -->
 
+    <h1>Indra Park</h1>
   </mat-toolbar>
-  <mat-sidenav-container class="example-sidenav-container" >
+  <mat-sidenav-container class="example-sidenav-container">
+
+    <mat-sidenav [fixedInViewport]=true [fixedTopGap]=71 mode="side" opened>
+      <p>
+        <button mat-button color="primary" [routerLink]="['/']">
+          Página Inicial
+        </button>
+      </p>
+      <p>
+        <button mat-button color="primary" [routerLink]="['/entrada']">
+          Realizar entrada
+        </button>
+      </p>
+      <p>
+        <button mat-button color="primary" [routerLink]="['/saida']">Realizar saida</button>
+      </p>
+    </mat-sidenav >
 
     <mat-sidenav-content class="page-wrapper">
-
       <div class="page-content">
-
-        <router-outlet>
-        </router-outlet>
-
+        <router-outlet> </router-outlet>
       </div>
-
     </mat-sidenav-content>
   </mat-sidenav-container>
 </div>

@@ -1,7 +1,9 @@
 import { Routes } from '@angular/router';
 
 import { FullComponent } from './layouts/full/full.component';
-import {TestComponent} from './view/test/test.component';
+import { FormEntradaComponent } from './view/form-entrada/form-entrada.component';
+import { FormSaidaComponent } from './view/form-saida/form-saida.component';
+import { PaginaInicialComponent } from './view/pagina-inicial/pagina-inicial.component';
 
 export const AppRoutes: Routes = [
   {
@@ -10,12 +12,16 @@ export const AppRoutes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'test',
-        pathMatch: 'full'
+        component: PaginaInicialComponent
       },
       {
-        path: 'test',
-        component: TestComponent
+        path: 'entrada',
+        component: FormEntradaComponent
+      },
+      {
+        path: 'saida',
+        component: FormSaidaComponent,
+        data: { data: '' }
       }
     ]
   }

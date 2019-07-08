@@ -1,0 +1,67 @@
+<div class="form-saida-container">
+
+  <h1>Realizar saida de veículo</h1>
+  
+  <div class="form-busca-container">
+    <form
+      [formGroup]="formSaida"
+      (ngSubmit)="buscaOperacaoEmAberto(formSaida.value)"
+    >
+      <!-- <label for="placa">Placa</label>
+      <input type="text" name="placa" id="placa" formControlName="placa" /> -->
+      <mat-form-field appearance="outline">
+        <mat-label>Placa</mat-label>
+        <input matInput placeholder="RTY3234" formControlName="placa" required>
+      </mat-form-field>
+      <div>
+        <button mat-stroked-button color="primary" type="submit" value="Buscar">
+          Buscar
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <div *ngIf="operacao">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ operacao.placa }}</mat-card-title>
+        <mat-card-subtitle>{{ operacao.modeloVeiculo }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Estado Atual: {{ operacao.estado }}</p>
+        <p *ngIf="valor">Valor Do Periodo: <span>R$ {{valor.valorDoPeriodo}}</span></p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  
+  <div *ngIf="operacao">
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      value="Calcular Valor"
+      (click)="calculaValor()"
+    >
+      Calcular Valor
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      value="Finalizar"
+      (click)="finalizaOpeacao()"
+    >
+      Finalizar
+    </button>
+  </div>
+
+  <button
+    mat-raised-button
+    color="warn"
+    type="button"
+    value="Cancelar"
+    routerLink="/"
+  >
+    Cancelar
+  </button>
+</div>

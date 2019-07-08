@@ -1,0 +1,23 @@
+.form-saida-container {
+  text-align: center;
+}
+.form-busca-container  button{
+  margin: 10px;
+}
+
+.mat-card {
+  width: 30%;
+  margin: 10px auto;
+}
+
+.mat-card p {
+  font-size: 1.5em;
+}
+
+.mat-card span {
+  color: rgb(0, 194, 0);
+}
+
+.form-saida-container button {
+  margin: 10px;
+}

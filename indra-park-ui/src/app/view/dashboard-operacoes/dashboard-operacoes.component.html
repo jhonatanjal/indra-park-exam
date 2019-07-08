@@ -1,0 +1,19 @@
+<div class="dashboard-grafico">
+  <canvas
+    baseChart
+    [chartType]="'line'"
+    [datasets]="chartData"
+    [labels]="chartLabels"
+    [options]="chartOptions"
+    [legend]="true"
+    [colors]="lineChartColors"
+    (chartClick)="onChartClick($event)"
+  >
+  </canvas>
+</div>
+<!-- [colors]="lineChartColors"
+  [legend]="lineChartLegend"
+  [chartType]="lineChartType"
+  [plugins]="lineChartPlugins"
+  (chartHover)="chartHovered($event)"
+  (chartClick)="chartClicked($event)" -->

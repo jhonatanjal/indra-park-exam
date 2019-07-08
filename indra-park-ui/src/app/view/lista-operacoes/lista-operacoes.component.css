@@ -1,0 +1,23 @@
+table {
+  width: 70%;
+  margin: 20px auto;
+}
+
+.mat-form-field {
+  font-size: 14px;
+  width: 100%;
+}
+
+.filtro-form {
+  width: 70%;
+  margin: auto;
+}
+
+.filtro-form form {
+  display: flex;
+  justify-content: space-around;
+}
+
+.mat-form-field {
+  width: 20%;
+}

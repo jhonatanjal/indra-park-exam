@@ -1,0 +1,74 @@
+<h2>Operações do dia</h2>
+<div class="filtro-form">
+  <form [formGroup]="formFiltro" (ngSubmit)="filtraOperacoes(formFiltro.value)">    
+      <!-- <label for="placa">Placa</label>
+      <input type="text" id="placa" formControlName="placa"> -->
+      <mat-form-field>
+        <mat-label>Placa</mat-label>
+        <input matInput placeholder="RTY3234" formControlName="placa">
+      </mat-form-field>
+    
+      <!-- <label for="dataInicial">Data Inicial</label>
+      <input type="date" id="dataInicial" formControlName="dataInicial"> -->
+      <mat-form-field>
+        <mat-label>Data Inicial</mat-label>
+        <input type="date" matInput formControlName="dataInicial">
+      </mat-form-field>
+    
+      <!-- <label for="dataFinal">Data Final</label>
+      <input type="date" id="dataFinal" formControlName="dataFinal"> -->
+      <mat-form-field>
+        <mat-label>Data Final</mat-label>
+        <input type="date" matInput formControlName="dataFinal">
+      </mat-form-field>
+    
+    
+      <button type="submit" mat-raised-button color="basic">Filtrar</button>
+    
+  </form>
+</div>
+<table mat-table [dataSource]="operacoes" class="mat-elevation-z8">
+
+  <!-- Placa Column -->
+  <ng-container matColumnDef="placa">
+    <th mat-header-cell *matHeaderCellDef>Placa</th>
+    <td mat-cell *matCellDef="let element">{{ element.placa }}</td>
+  </ng-container>
+
+  <!-- Modelo Column -->
+  <ng-container matColumnDef="modelo">
+    <th mat-header-cell *matHeaderCellDef>Modelo</th>
+    <td mat-cell *matCellDef="let element">{{ element.modeloVeiculo }}</td>
+  </ng-container>
+
+  <!-- Data/Hora Column -->
+  <ng-container matColumnDef="dataHora">
+    <th mat-header-cell *matHeaderCellDef>Data/Hora</th>
+    <td mat-cell *matCellDef="let element">
+      {{
+        element.estado == 'ENTRADA'
+          ? element.dataHoraEntrada
+          : element.dataHoraSaida
+      }}
+    </td>
+  </ng-container>
+
+  <!-- Estado Column -->
+  <ng-container matColumnDef="estado">
+    <th mat-header-cell *matHeaderCellDef>Estado</th>
+    <td mat-cell *matCellDef="let element">
+      {{ element.estado }}
+      <button
+        mat-button
+        color="primary"
+        *ngIf="element.estado == 'ENTRADA'"
+        (click)="vaiParaFormSaida(element.placa)"
+      >
+        Realizar Saida
+      </button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>

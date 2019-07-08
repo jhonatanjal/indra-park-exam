@@ -1,0 +1,25 @@
+<div class="form-entrada-container">
+    <h1>Realizar entrada de veículo</h1>
+    
+    <form [formGroup]="formEntrada" (ngSubmit)="onSubmit(formEntrada.value)">
+      <div>
+        <mat-form-field appearance="outline">
+          <mat-label>Placa</mat-label>
+          <input matInput placeholder="RTY3234" formControlName="placa" required>
+        </mat-form-field>
+      </div>
+      <div>
+        <mat-form-field>
+          <mat-select placeholder="Modelo" formControlName="modelo" required>
+            <mat-option *ngFor="let modelo of modelosVeiculo" [value]="modelo">
+              {{ modelo }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    
+      <button mat-button color="primary" type="submit" value="Salvar">Salvar</button>
+      
+      <button mat-button color="warn" type="button" value="Cancelar" routerLink="/">Cancelar</button>
+    </form>
+</div>
