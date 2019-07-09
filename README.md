@@ -6,7 +6,7 @@ Desafio técnico – Desenvolvedor Web
 * [Postgres] 
 
 ### Clone
-Run: `git clone https://github.com/Andryev/indra-park-exam.git`
+Run: `git clone https://github.com/jhonatanjal/indra-park-exam.git`
 
 ### Build
 
@@ -14,10 +14,20 @@ Run: `mvn clean install`
 
 ### Config Database
 
-Configurar o banco de dados em application.properties.
+Rode no postgres:
+```sql
+CREATE USER indrapark SUPERUSER PASSWORD 'indrapark';
+CREATE DATABASE indra_park_exam;
+GRANT ALL PRIVILEGES ON DATABASE indra_park_exam TO indrapark;
+```
+ou configure o banco de dados em **application.properties.**
 
 ### Start
 
-Run: `IndraParkApiApplication.java`
+#### API
 
+Para iniciar a API use o comando: `mvn spring-boot:run`
 
+#### UI
+
+Para iniciar a UI use o comando: `npm start`
