@@ -1,5 +1,6 @@
 package com.indraparkapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.indraparkapi.model.EstadoOperacao;
 import com.indraparkapi.model.ModeloVeiculo;
 import com.indraparkapi.model.Operacao;
@@ -7,11 +8,17 @@ import com.indraparkapi.model.Operacao;
 import java.time.LocalDateTime;
 
 public class OperacaoDTO {
+
     private Long id;
     private String placa;
     private ModeloVeiculo modeloVeiculo;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy kk:mm:ss")
     private LocalDateTime dataHoraEntrada;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy kk:mm:ss")
     private LocalDateTime dataHoraSaida;
+
     private EstadoOperacao estado;
 
     public OperacaoDTO(Operacao operacao) {

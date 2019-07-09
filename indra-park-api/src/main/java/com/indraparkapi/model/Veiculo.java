@@ -22,8 +22,8 @@ public class Veiculo {
     public Veiculo() {
     }
 
-    public Veiculo(@NotNull String placa, ModeloVeiculo modelo, Operacao operacao) {
-        this.placa = placa;
+    public Veiculo(String placa, ModeloVeiculo modelo, Operacao operacao) {
+        this.placa = placa.toUpperCase();
         this.modelo = modelo;
         adicionaOperacao(operacao);
     }

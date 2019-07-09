@@ -9,8 +9,9 @@ import static java.time.temporal.ChronoUnit.MINUTES;
 
 @Entity
 public class Operacao {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Enumerated(EnumType.STRING)
@@ -61,7 +62,7 @@ public class Operacao {
         return estado;
     }
 
-    public void setVeiculo(Veiculo veiculo) {
+    void setVeiculo(Veiculo veiculo) {
         this.veiculo = veiculo;
     }
 
@@ -75,5 +76,20 @@ public class Operacao {
 
     public LocalDateTime getDataHoraSaida() {
         return dataHoraSaida;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Operacao operacao = (Operacao) o;
+
+        return id != null ? id.equals(operacao.id) : operacao.id == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 }

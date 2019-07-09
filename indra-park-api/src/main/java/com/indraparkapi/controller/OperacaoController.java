@@ -1,4 +1,4 @@
-package com.indraparkapi.resources;
+package com.indraparkapi.controller;
 
 import com.indraparkapi.dto.OperacaoDTO;
 import com.indraparkapi.dto.VeiculoDTO;
@@ -12,8 +12,11 @@ import com.indraparkapi.util.EstatisticasUtil;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,12 +26,12 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/operacoes")
-public class OperacaoResource {
+public class OperacaoController {
 
     private VeiculoRepository veiculoRepository;
     private OperacaoRepository operacaoRepository;
 
-    public OperacaoResource(VeiculoRepository veiculoRepository, OperacaoRepository operacaoRepository) {
+    public OperacaoController(VeiculoRepository veiculoRepository, OperacaoRepository operacaoRepository) {
         this.veiculoRepository = veiculoRepository;
         this.operacaoRepository = operacaoRepository;
     }
@@ -46,37 +49,48 @@ public class OperacaoResource {
     }
 
     @GetMapping(params = {"dataInicial", "dataFinal"})
-    public List<OperacaoDTO> operacoesEntre(@RequestParam
+    public ResponseEntity<?> operacoesEntre(@RequestParam
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicial,
                                             @RequestParam
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFinal) {
+        if (dataFinal.isBefore(dataInicial)) {
+            return ResponseEntity.badRequest().body("A data final é anterior a inicial.");
+        }
+
         List<Operacao> operacoes = operacaoRepository.findByDataHoraEntradaIsBetween(
                 dataInicial.atTime(LocalTime.of(0, 0)),
                 dataFinal.atTime(LocalTime.of(23, 59)));
 
-        return operacoes.stream()
+        List<OperacaoDTO> operacoesDTO = operacoes.stream()
                 .map(OperacaoDTO::new)
                 .collect(Collectors.toList());
+
+        return ResponseEntity.ok(operacoesDTO);
     }
 
-    @GetMapping("/{placa}")
-    public List<OperacaoDTO> buscaPor(@PathVariable String placa) {
-        Optional<Veiculo> veiculoOpt = veiculoRepository.findById(placa);
-        List<OperacaoDTO> operacoes = new ArrayList<>();
+    @GetMapping(params = {"veiculoPlaca"})
+    public ResponseEntity<?> buscaPor(@RequestParam String veiculoPlaca) {
+        Optional<Veiculo> veiculo = veiculoRepository.findById(veiculoPlaca);
 
-        veiculoOpt.ifPresent(veiculo ->
-                veiculo.getOperacoes().forEach(operacao ->
-                        operacoes.add(new OperacaoDTO(operacao))));
+        List<OperacaoDTO> operacoes;
+        if (veiculo.isPresent()) {
+            operacoes = veiculo.get().getOperacoes()
+                    .stream()
+                    .map(OperacaoDTO::new)
+                    .collect(Collectors.toList());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
 
-        return operacoes;
+        return ResponseEntity.ok(operacoes);
     }
 
-    @GetMapping("/{id}/valorCobrado")
-    public ResponseEntity<?> valorEstacionamento(@PathVariable Long id) {
-        Optional<Operacao> operacaoOpt = operacaoRepository.findById(id);
+    @GetMapping("/valorCobrado")
+    public ResponseEntity<?> valorEstacionamento(@RequestParam Long idOperacao) {
+        Optional<Operacao> operacaoOpt = operacaoRepository.findById(idOperacao);
 
         if (!operacaoOpt.isPresent()) {
-            return ResponseEntity.notFound().build();
+            return new ResponseEntity<>("id invalido", HttpStatus.NOT_FOUND);
         }
 
         Operacao operacao = operacaoOpt.get();
@@ -103,9 +117,9 @@ public class OperacaoResource {
         return EstatisticasUtil.veiculosPorDia(operacoes);
     }
 
-    @GetMapping("/{placa}/entrada")
-    public ResponseEntity<?> bustaOperacaoDeEntradoDoVeiculo(@PathVariable String placa) {
-        Optional<Operacao> operacao = buscaOperacaoEmAbertoPela(placa);
+    @GetMapping("/entrada")
+    public ResponseEntity<?> bustaOperacaoDeEntradoDoVeiculo(@RequestParam String veiculoPlaca) {
+        Optional<Operacao> operacao = buscaOperacaoEmAbertoPela(veiculoPlaca.toUpperCase());
         if (!operacao.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -122,9 +136,11 @@ public class OperacaoResource {
     }
 
     @PostMapping
-    public ResponseEntity<?> entrada(@RequestBody VeiculoDTO veiculoDTO) {
+    public ResponseEntity<?> entrada(@Valid @RequestBody VeiculoDTO veiculoDTO) {
         Operacao operacao = new Operacao(LocalDateTime.now());
-        Veiculo veiculo = new Veiculo(veiculoDTO.getPlaca(), veiculoDTO.getModelo(), operacao);
+        Veiculo veiculo = new Veiculo(veiculoDTO.getPlaca().toUpperCase(),
+                veiculoDTO.getModelo(),
+                operacao);
         Veiculo veiculoSalvo = veiculoRepository.save(veiculo);
 
         return new ResponseEntity<>(
@@ -132,13 +148,23 @@ public class OperacaoResource {
                 HttpStatus.CREATED);
     }
 
-    @PutMapping("/{placa}")
-    public ResponseEntity<?> saida(@PathVariable String placa) {
-        Optional<Veiculo> veiculo = veiculoRepository.findById(placa);
-        if (!veiculo.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        Optional<Operacao> operacaoOpt = veiculo.get().getOperacaoEmAberto();
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> erros = new HashMap<>();
+
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String nomeAtributo = ((FieldError) error).getField();
+            String mensagem = error.getDefaultMessage();
+            erros.put(nomeAtributo, mensagem);
+        });
+
+        return erros;
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> saida(@PathVariable(name = "id") Long idOperacao) {
+        Optional<Operacao> operacaoOpt = operacaoRepository.findById(idOperacao);
         if (!operacaoOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }

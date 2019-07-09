@@ -1,7 +1,5 @@
-package com.indraparkapi.resources;
+package com.indraparkapi.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.indraparkapi.model.EstadoOperacao;
 import com.indraparkapi.model.ModeloVeiculo;
 import com.indraparkapi.model.Operacao;
@@ -16,22 +14,23 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest
-public class OperacaoResourceTest {
+public class OperacaoControllerTest {
+
+    private static final String OPERACOES_URI = "/operacoes";
 
     @Autowired
     private MockMvc mockMvc;
@@ -43,9 +42,9 @@ public class OperacaoResourceTest {
     private OperacaoRepository operacaoRepository;
 
     @Test
-    public void operacoesDeveRetonarOperacoesDoDiaCorrentePorPadrao() throws Exception {
+    public void quandoRecebeRequisicaoGetParaOperacoes_deveRetornarOperacoesDoDia() throws Exception {
 
-        mockMvc.perform(get("/operacoes")).andExpect(status().isOk());
+        mockMvc.perform(get(OPERACOES_URI)).andExpect(status().isOk());
 
         verify(operacaoRepository)
                 .findByDataHoraEntradaIsBetweenOrEstadoIs(any(LocalDateTime.class),
@@ -54,7 +53,8 @@ public class OperacaoResourceTest {
     }
 
     @Test
-    public void deveFiltrarOperacoesEntrePeriodoDeDatas() throws Exception {
+    public void quandoRecebeRequisicaoGetComParametrosDataInicialDataFinal_deveFiltrarOperacoesEntreDatas()
+            throws Exception {
         LocalDateTime dataInicial = LocalDateTime.of(2019, 7, 3, 0, 0);
         LocalDateTime dataFinal = LocalDateTime.of(2019, 7, 5, 23, 59);
 
@@ -67,31 +67,59 @@ public class OperacaoResourceTest {
     }
 
     @Test
-    public void deveFiltrarOperacoesDeUmVeiculoPelaPlaca() throws Exception {
-        String placa = "eeee3344";
+    public void quandoRecebeRequisicaoGetComParametrosDataInicialDataFinalInvalidos_deveRetornarBadRequest()
+            throws Exception {
 
-        mockMvc.perform(get("/operacoes/eeee3344"))
+        mockMvc.perform(get("/operacoes?dataInicial=2019-07-05&dataFinal=2019-07-03"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void quandoRecebeRequisicaoGetComParametroVeiculoPlaca_deveFiltrarOperacoesDeUmVeiculo()
+            throws Exception {
+        Veiculo veiculo = new Veiculo("AQW1234", ModeloVeiculo.CAMINHONETE, new Operacao(LocalDateTime.now()));
+        when(veiculoRepository.findById(veiculo.getPlaca())).thenReturn(Optional.of(veiculo));
+
+        mockMvc.perform(get("/operacoes?veiculoPlaca=" + veiculo.getPlaca()))
                 .andExpect(status().isOk());
 
-        verify(veiculoRepository).findById(placa);
+        verify(veiculoRepository).findById("AQW1234");
 
     }
 
     @Test
-    public void deveCaucularOValorDoPeriodoEstacionado() throws Exception {
+    public void quandoRecebeRequisicaoGetComParaValorCobradoIdOperacao_deveCaucularValorDoPeriodoEstacionado()
+            throws Exception {
         Operacao operacao = new Operacao(LocalDateTime.now());
-        Veiculo veiculo = new Veiculo("ddd3456", ModeloVeiculo.CARRO, operacao);
-        //when(veiculoRepository.findById("ddd3456")).thenReturn(Optional.of(veiculo));
+        new Veiculo("ddd3456", ModeloVeiculo.CARRO, operacao);
         when(operacaoRepository.findById(1L)).thenReturn(Optional.of(operacao));
 
-        mockMvc.perform(get("/operacoes/1/valorCobrado"))
+        mockMvc.perform(get("/operacoes/valorCobrado?idOperacao=1"))
                 .andExpect(status().isOk());
 
         verify(operacaoRepository).save(operacao);
     }
 
     @Test
-    public void deveSalvarVeiculoEOperacaoNoBancoQuandoRecebeVeiculo() throws Exception {
+    public void quandoRecebeRequisicaoGetParaEntradaComVeiculoPlaca_deveRetornarOperacaoDeEntradaDoVeiculo()
+            throws Exception {
+        Operacao operacao1 = new Operacao(LocalDateTime.now());
+        Veiculo veiculo = new Veiculo("URE5566", ModeloVeiculo.MOTO, operacao1);
+        operacao1.finalizaOperacao();
+        Operacao operacao2 = new Operacao(LocalDateTime.now().plusDays(1));
+        veiculo.adicionaOperacao(operacao2);
+
+        when(veiculoRepository.findById(veiculo.getPlaca())).thenReturn(Optional.of(veiculo));
+
+        mockMvc.perform(get("/operacoes/entrada?veiculoPlaca=URE5566"))
+                .andExpect(jsonPath("$.estado", is(EstadoOperacao.ENTRADA.toString())))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void quandoRecebeRequisicaoPost_deveSalvarVeiculoOperacaoNoBancoQuandoRecebeVeiculoValido()
+            throws Exception {
         Veiculo veiculo = new Veiculo("ddd3456", ModeloVeiculo.CARRO, new Operacao(LocalDateTime.now()));
         when(veiculoRepository.save(any(Veiculo.class))).thenReturn(veiculo);
 
@@ -106,47 +134,22 @@ public class OperacaoResourceTest {
     }
 
     @Test
-    public void deveAtualizarEstadoDaOperacaoParaSaida() throws Exception {
+    public void quandoRecevePutComIdOperacaoNoPath_deveAtualizarEstadoDaOperacaoParaSaida() throws Exception {
         LocalDateTime dataHoraEntrada = LocalDateTime.now();
-        LocalDateTime dataHoraSaida = dataHoraEntrada.plusHours(1);
 
         Operacao operacao = new Operacao(dataHoraEntrada);
-        Veiculo veiculo = new Veiculo("ddd3456", ModeloVeiculo.CARRO, operacao);
+        new Veiculo("ddd3456", ModeloVeiculo.CARRO, operacao);
 
         when(operacaoRepository.save(any(Operacao.class))).thenReturn(operacao);
-        when(veiculoRepository.findById(any(String.class))).thenReturn(Optional.of(veiculo));
+        when(operacaoRepository.findById(1L)).thenReturn(Optional.of(operacao));
 
-        MvcResult mvcResult = mockMvc.perform(put("/operacoes/ddd3456"))
+        mockMvc.perform(put("/operacoes/1"))
+                .andExpect(jsonPath("$.estado", is(EstadoOperacao.SAIDA.toString())))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String json = mvcResult.getResponse().getContentAsString();
-        String estado = new ObjectMapper()
-                .readValue(json, JsonNode.class)
-                .get("estado").asText();
-
-        assertThat(estado, is("SAIDA"));
-
-        verify(veiculoRepository).findById("ddd3456");
+        verify(operacaoRepository).findById(1L);
         verify(operacaoRepository).save(operacao);
 
     }
-
-    @Test
-    public void deveAtualizarEstadoOperacaoNoBanco() throws Exception {
-        LocalDateTime dataHoraEntrada = LocalDateTime.now();
-
-        Operacao operacao = new Operacao(dataHoraEntrada);
-        Veiculo veiculo = new Veiculo("ddd3456", ModeloVeiculo.CARRO, operacao);
-
-        when(operacaoRepository.save(any(Operacao.class))).thenReturn(operacao);
-        when(veiculoRepository.findById("ddd3456")).thenReturn(Optional.of(veiculo));
-
-        mockMvc.perform(put("/operacoes/ddd3456"))
-                .andExpect(status().isOk());
-
-        verify(veiculoRepository).findById("ddd3456");
-        verify(operacaoRepository).save(operacao);
-    }
-
 }
