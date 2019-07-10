@@ -99,25 +99,19 @@ export class DashboardOperacoesComponent implements OnInit {
 
     dias.forEach((dia, index) => {
       let modelos = Object.keys(dados[dia]);
-
-      this.qtdsCarro.push(0);
-      this.qtdsMoto.push(0);
-      this.qtdsCaminhao.push(0);
-      this.qtdsCaminhonete.push(0);
-
       modelos.forEach(modelo => {
         switch (modelo) {
           case 'CARRO':
-            this.qtdsCarro[index] += dados[dia][modelo];
+            this.qtdsCarro[index] = dados[dia][modelo];
             break;
           case 'MOTO':
-            this.qtdsMoto[index] += dados[dia][modelo];
+            this.qtdsMoto[index] = dados[dia][modelo];
             break;
           case 'CAMINHAO':
-            this.qtdsCaminhao[index] += dados[dia][modelo];
+            this.qtdsCaminhao[index] = dados[dia][modelo];
             break;
           case 'CAMINHONETE':
-            this.qtdsCaminhonete[index] += dados[dia][modelo];
+            this.qtdsCaminhonete[index] = dados[dia][modelo];
             break;
         }
       });

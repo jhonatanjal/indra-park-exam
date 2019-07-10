@@ -27,9 +27,10 @@ export class FormSaidaComponent implements OnInit {
 
   ngOnInit() {
     this.acRouter.params.subscribe(params => {
-      this.formSaida.setValue({ 'placa': params.placa });
-      console.log(params)
-      this.buscaOperacaoEmAberto({placa: params.placa});
+      if (params.placa) {
+        this.formSaida.setValue({ 'placa': params.placa });
+        this.buscaOperacaoEmAberto({placa: params.placa});
+      }
     });
   }
 

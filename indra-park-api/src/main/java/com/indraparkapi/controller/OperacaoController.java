@@ -21,7 +21,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,7 +34,8 @@ public class OperacaoController {
     private VeiculoRepository veiculoRepository;
     private OperacaoRepository operacaoRepository;
 
-    public OperacaoController(VeiculoRepository veiculoRepository, OperacaoRepository operacaoRepository) {
+    public OperacaoController(VeiculoRepository veiculoRepository,
+                              OperacaoRepository operacaoRepository) {
         this.veiculoRepository = veiculoRepository;
         this.operacaoRepository = operacaoRepository;
     }
@@ -106,15 +110,7 @@ public class OperacaoController {
 
     @GetMapping("/estatisticas")
     public HashMap<String, Map<ModeloVeiculo, Integer>> estatisticasDaSemana() {
-        LocalDate dataDeHoje = LocalDate.now();
-
-        LocalDateTime hoje = dataDeHoje.atTime(23, 59);
-        LocalDateTime seteDiasAtras = dataDeHoje.minusDays(7).atTime(0, 0);
-
-
-        List<Operacao> operacoes = operacaoRepository.findByDataHoraEntradaIsBetween(seteDiasAtras, hoje);
-
-        return EstatisticasUtil.veiculosPorDia(operacoes);
+        return new EstatisticasUtil(operacaoRepository).veiculosPorDia();
     }
 
     @GetMapping("/entrada")
@@ -137,10 +133,15 @@ public class OperacaoController {
 
     @PostMapping
     public ResponseEntity<?> entrada(@Valid @RequestBody VeiculoDTO veiculoDTO) {
+        Optional<Veiculo> veiculoOpt = veiculoRepository.findById(veiculoDTO.getPlaca());
+
         Operacao operacao = new Operacao(LocalDateTime.now());
-        Veiculo veiculo = new Veiculo(veiculoDTO.getPlaca().toUpperCase(),
-                veiculoDTO.getModelo(),
-                operacao);
+
+        Veiculo veiculo = veiculoOpt.map(v -> {
+            v.adicionaOperacao(operacao);
+            return v;
+        }).orElseGet(() -> new Veiculo(veiculoDTO.getPlaca(), veiculoDTO.getModelo(), operacao));
+
         Veiculo veiculoSalvo = veiculoRepository.save(veiculo);
 
         return new ResponseEntity<>(

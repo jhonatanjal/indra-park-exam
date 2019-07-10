@@ -1,6 +1,7 @@
 package com.indraparkapi.repository;
 
 import com.indraparkapi.model.EstadoOperacao;
+import com.indraparkapi.model.ModeloVeiculo;
 import com.indraparkapi.model.Operacao;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -13,4 +14,8 @@ public interface OperacaoRepository extends JpaRepository<Operacao, Long> {
                                                             EstadoOperacao estado);
 
     List<Operacao> findByDataHoraEntradaIsBetween(LocalDateTime start, LocalDateTime end);
+
+    Integer countByDataHoraEntradaBetweenAndVeiculo_Modelo(LocalDateTime start,
+                                                           LocalDateTime end,
+                                                           ModeloVeiculo modelo);
 }

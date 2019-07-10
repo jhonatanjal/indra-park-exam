@@ -1,77 +1,55 @@
 package com.indraparkapi.util;
 
 import com.indraparkapi.model.ModeloVeiculo;
-import com.indraparkapi.model.Operacao;
+import com.indraparkapi.repository.OperacaoRepository;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EstatisticasUtil {
 
-    private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
+    private final OperacaoRepository repository;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
 
-    public static HashMap<String, Map<ModeloVeiculo, Integer>> veiculosPorDia(List<Operacao> operacoes) {
-        Map<String, List<Operacao>> operacoesPorDia = getOperacoesPorDia(operacoes);
-
-        return getQuantidadesDeVeiculosEmCadaDia(operacoesPorDia);
+    public EstatisticasUtil(OperacaoRepository repository) {
+        this.repository = repository;
     }
 
-    private static HashMap<String, Map<ModeloVeiculo, Integer>> getQuantidadesDeVeiculosEmCadaDia(
-            Map<String, List<Operacao>> operacoesPorDia
-    ) {
-
+    public HashMap<String, Map<ModeloVeiculo, Integer>> veiculosPorDia() {
         HashMap<String, Map<ModeloVeiculo, Integer>> veiculosPorDia = new HashMap<>();
+        LocalDate hoje = LocalDate.now();
 
-        Set<String> dias = operacoesPorDia.keySet();
-        preencheEspacoEmVazio(veiculosPorDia, dias);
+        List<LocalDate> dias = getUltimosSeteDias(hoje);
 
         dias.forEach(dia -> {
-            Map<ModeloVeiculo, List<Operacao>> operacoesPorModelo = getOperacoesPorModelo(operacoesPorDia, dia);
-
             HashMap<ModeloVeiculo, Integer> quantidadeDeUmModeloNoDia = new HashMap<>();
-
-            operacoesPorModelo.forEach((modeloVeiculo, operacoes) ->
-                    quantidadeDeUmModeloNoDia.put(modeloVeiculo, operacoes.size()));
-
-            veiculosPorDia.put(dia, quantidadeDeUmModeloNoDia);
+            for (ModeloVeiculo modelo : ModeloVeiculo.values()) {
+                Integer count = buscaQuantidadePorModeloNoDia(dia, modelo);
+                quantidadeDeUmModeloNoDia.put(modelo, count);
+            }
+            veiculosPorDia.put(formatter.format(dia), quantidadeDeUmModeloNoDia);
         });
 
         return veiculosPorDia;
     }
 
-    private static void preencheEspacoEmVazio(HashMap<String, Map<ModeloVeiculo, Integer>> veiculosPorDia,
-                                              Set<String> dias) {
-        if (dias.size() < 7) {
-            LocalDate amanha = LocalDate.now().plusDays(1);
-            LocalDate dataAtual = LocalDate.now().minusDays(6);
+    private Integer buscaQuantidadePorModeloNoDia(LocalDate dia, ModeloVeiculo modelo) {
+        return repository.countByDataHoraEntradaBetweenAndVeiculo_Modelo(
+                dia.atTime(0, 0),
+                dia.atTime(23, 59),
+                modelo
+        );
+    }
 
-            while (dataAtual.isBefore(amanha)) {
-                String dataStr = formatter.format(dataAtual);
-                HashMap<ModeloVeiculo, Integer> quantidadeDeUmModeloNoDia = new HashMap<>();
-
-                ModeloVeiculo[] values = ModeloVeiculo.values();
-                for (ModeloVeiculo modelo : values) {
-                    quantidadeDeUmModeloNoDia.put(modelo, 0);
-                }
-
-                veiculosPorDia.put(dataStr, quantidadeDeUmModeloNoDia);
-                dataAtual = dataAtual.plusDays(1);
-            }
+    private List<LocalDate> getUltimosSeteDias(LocalDate hoje) {
+        List<LocalDate> dates = new ArrayList<>();
+        for (int i = 0; i < 7; i++) {
+            dates.add(hoje.minusDays(i));
         }
-    }
-
-    private static Map<ModeloVeiculo, List<Operacao>> getOperacoesPorModelo(
-            Map<String, List<Operacao>> operacoesPorDia,
-            String dia
-    ) {
-        return operacoesPorDia.get(dia).stream()
-                .collect(Collectors.groupingBy(o -> o.getVeiculo().getModelo()));
-    }
-
-    private static Map<String, List<Operacao>> getOperacoesPorDia(List<Operacao> operacoes) {
-        return operacoes.stream()
-                .collect(Collectors.groupingBy(o -> formatter.format(o.getDataHoraEntrada())));
+        return dates;
     }
 }

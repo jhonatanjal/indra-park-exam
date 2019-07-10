@@ -30,8 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 public class OperacaoControllerTest {
 
-    private static final String OPERACOES_URI = "/operacoes";
-
     @Autowired
     private MockMvc mockMvc;
 
@@ -44,7 +42,7 @@ public class OperacaoControllerTest {
     @Test
     public void quandoRecebeRequisicaoGetParaOperacoes_deveRetornarOperacoesDoDia() throws Exception {
 
-        mockMvc.perform(get(OPERACOES_URI)).andExpect(status().isOk());
+        mockMvc.perform(get("/operacoes")).andExpect(status().isOk());
 
         verify(operacaoRepository)
                 .findByDataHoraEntradaIsBetweenOrEstadoIs(any(LocalDateTime.class),
@@ -58,7 +56,9 @@ public class OperacaoControllerTest {
         LocalDateTime dataInicial = LocalDateTime.of(2019, 7, 3, 0, 0);
         LocalDateTime dataFinal = LocalDateTime.of(2019, 7, 5, 23, 59);
 
-        mockMvc.perform(get("/operacoes?dataInicial=2019-07-03&dataFinal=2019-07-05"))
+        mockMvc.perform(get("/operacoes")
+                .param("dataInicial", "2019-07-03")
+                .param("dataFinal", "2019-07-05"))
                 .andExpect(status().isOk());
 
         verify(operacaoRepository)
@@ -70,7 +70,9 @@ public class OperacaoControllerTest {
     public void quandoRecebeRequisicaoGetComParametrosDataInicialDataFinalInvalidos_deveRetornarBadRequest()
             throws Exception {
 
-        mockMvc.perform(get("/operacoes?dataInicial=2019-07-05&dataFinal=2019-07-03"))
+        mockMvc.perform(get("/operacoes")
+                .param("dataInicial", "2019-07-05")
+                .param("dataFinal", "2019-07-03"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -80,7 +82,8 @@ public class OperacaoControllerTest {
         Veiculo veiculo = new Veiculo("AQW1234", ModeloVeiculo.CAMINHONETE, new Operacao(LocalDateTime.now()));
         when(veiculoRepository.findById(veiculo.getPlaca())).thenReturn(Optional.of(veiculo));
 
-        mockMvc.perform(get("/operacoes?veiculoPlaca=" + veiculo.getPlaca()))
+        mockMvc.perform(get("/operacoes")
+                .param("veiculoPlaca", veiculo.getPlaca()))
                 .andExpect(status().isOk());
 
         verify(veiculoRepository).findById("AQW1234");
@@ -94,7 +97,8 @@ public class OperacaoControllerTest {
         new Veiculo("ddd3456", ModeloVeiculo.CARRO, operacao);
         when(operacaoRepository.findById(1L)).thenReturn(Optional.of(operacao));
 
-        mockMvc.perform(get("/operacoes/valorCobrado?idOperacao=1"))
+        mockMvc.perform(get("/operacoes/valorCobrado")
+                .param("idOperacao", "1"))
                 .andExpect(status().isOk());
 
         verify(operacaoRepository).save(operacao);
@@ -111,7 +115,8 @@ public class OperacaoControllerTest {
 
         when(veiculoRepository.findById(veiculo.getPlaca())).thenReturn(Optional.of(veiculo));
 
-        mockMvc.perform(get("/operacoes/entrada?veiculoPlaca=URE5566"))
+        mockMvc.perform(get("/operacoes/entrada")
+                .param("veiculoPlaca", "URE5566"))
                 .andExpect(jsonPath("$.estado", is(EstadoOperacao.ENTRADA.toString())))
                 .andExpect(status().isOk());
 
