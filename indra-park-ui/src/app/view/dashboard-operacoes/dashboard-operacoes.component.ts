@@ -84,7 +84,18 @@ export class DashboardOperacoesComponent implements OnInit {
 
   preencheGrafico(dados) {
     let dias = Object.keys(dados);
-    this.chartLabels = dias.reverse();
+    this.chartLabels = dias.sort((a, b) => {
+      let anoAtual = new Date().getFullYear();
+      a = a + '/' + anoAtual;
+      b = b + '/' + anoAtual;
+      
+      let data1 = new Date(a);
+      let data2 = new Date(b);
+      
+      if (data1 > data2) return 1;
+      if (data1 < data2) return -1;
+      return 0;
+    });
 
     dias.forEach((dia, index) => {
       let modelos = Object.keys(dados[dia]);
