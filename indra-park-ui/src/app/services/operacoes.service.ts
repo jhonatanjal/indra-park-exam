@@ -9,6 +9,7 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class OperacoesService {
+  
   url: string = 'http://localhost:8080/operacoes/';
 
   constructor(private http: HttpClient) {}
@@ -31,23 +32,23 @@ export class OperacoesService {
   }
 
   getOperacoesDeUmVeiculo(placa) {
-    return this.http.get(this.url + `/${placa}`, httpOptions);
+    return this.http.get(this.url + `?veiculoPlaca=${placa}`, httpOptions);
   }
-  
+
   realizaEntrada(veiculo) {
     return this.http.post(this.url, veiculo, httpOptions);
   }
 
   getOperacaoDeEntradaDoVeiculo(placa) {
-    return this.http.get(this.url + `/${placa}/entrada`, httpOptions);
-  }
-  
-  getValorEstacionamento(operacaoId) {
-    return this.http.get(this.url + `/${operacaoId}/valorCobrado`, httpOptions);
+    return this.http.get(this.url + `/entrada?veiculoPlaca=${placa}`, httpOptions);
   }
 
-  finalizaOperacao(placa: string) {
-    return this.http.put(this.url + `/${placa}`, httpOptions);
+  getValorEstacionamento(operacaoId: number) {
+    return this.http.get(this.url + `/valorCobrado?idOperacao=${operacaoId}`, httpOptions);
+  }
+
+  finalizaOperacao(operacaoId: number) {
+    return this.http.put(this.url + `/${operacaoId}`, httpOptions);
   }
 
   getEstatisticasDaSemana() {

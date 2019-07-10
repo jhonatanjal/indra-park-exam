@@ -4,3 +4,11 @@
 body {
   margin: 0;
 }
+
+.form-mensagem-erro {
+  color:  red;
+}
+
+.form-campo-placa {
+  text-transform: uppercase;
+}

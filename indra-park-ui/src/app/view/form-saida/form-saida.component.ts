@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { OperacoesService } from '../../services/operacoes.service';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -9,42 +9,59 @@ import { Router, ActivatedRoute } from '@angular/router';
   styleUrls: ['./form-saida.component.css']
 })
 export class FormSaidaComponent implements OnInit {
-  formSaida: FormGroup = this.formBuilder.group({ placa: [''] });
-  operacao: any = null;
-  valor: any;
+  
+  formSaida: FormGroup = this.formBuilder.group({
+    placa: ['', [Validators.required, Validators.pattern('[a-zA-Z0-9]{7}')]]
+  });
+  operacao: any;
+  valor;
+  valorNaoCalculado: boolean = true;
+  erroBuscandoPlaca: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
-    private operacaoService: OperacoesService,
+    private service: OperacoesService,
     private router: Router,
     private acRouter: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.acRouter.params.subscribe(params => {
-      this.buscaOperacaoEmAberto(params);
+      this.formSaida.setValue({ 'placa': params.placa });
+      console.log(params)
+      this.buscaOperacaoEmAberto({placa: params.placa});
     });
   }
 
+  get placa() {
+    return this.formSaida.get('placa');
+  }
+
   buscaOperacaoEmAberto(value) {
-    if (value.placa) {
-      this.operacaoService
-        .getOperacaoDeEntradaDoVeiculo(value.placa)
-        .subscribe(res => (this.operacao = res));
+    if (this.formSaida.valid) {
+      this.service.getOperacaoDeEntradaDoVeiculo(value.placa).subscribe(
+        res => {
+          this.operacao = res;
+          this.erroBuscandoPlaca = false;
+        },
+        error => {
+          console.log(error);
+          this.erroBuscandoPlaca = true;
+        }
+      );
     }
   }
 
   calculaValor() {
-    this.operacaoService
-      .getValorEstacionamento(this.operacao.id)
-      .subscribe(res => {
-        this.valor = res;
-      });
+    this.service.getValorEstacionamento(this.operacao.id).subscribe(res => {
+      this.valor = res;
+      this.valorNaoCalculado = false;
+    });
   }
 
-  finalizaOpeacao(placa: string) {
-    this.operacaoService
-      .finalizaOperacao(this.operacao.placa)
+  finalizaOpeacao() {
+    this.service
+      .finalizaOperacao(this.operacao.id)
       .subscribe(
         () => this.router.navigateByUrl('/'),
         erro => console.log(erro)

@@ -1,18 +1,32 @@
 <div class="form-saida-container">
-
   <h1>Realizar saida de veículo</h1>
-  
+
   <div class="form-busca-container">
     <form
       [formGroup]="formSaida"
       (ngSubmit)="buscaOperacaoEmAberto(formSaida.value)"
     >
-      <!-- <label for="placa">Placa</label>
-      <input type="text" name="placa" id="placa" formControlName="placa" /> -->
       <mat-form-field appearance="outline">
         <mat-label>Placa</mat-label>
-        <input matInput placeholder="RTY3234" formControlName="placa" required>
+        <input
+          matInput
+          placeholder="RTY3234"
+          formControlName="placa"
+          required
+          class="form-campo-placa"
+        />
       </mat-form-field>
+      <div *ngIf="placa.invalid && (placa.dirty || placa.touched)">
+        <p *ngIf="placa.errors.required" class="form-busca-mensagem-erro">
+          Campo placa é obrigatorio
+        </p>
+        <p *ngIf="placa.errors.pattern" class="form-mensagem-erro">
+          O campo deve ter somente 7 dígitos e ser composto de letras e números.
+        </p>
+      </div>
+      <p *ngIf="erroBuscandoPlaca" class="form-mensagem-erro">
+        Veiculo não tem operação de entrada
+      </p>
       <div>
         <button mat-stroked-button color="primary" type="submit" value="Buscar">
           Buscar
@@ -20,7 +34,7 @@
       </div>
     </form>
   </div>
-  
+
   <div *ngIf="operacao">
     <mat-card>
       <mat-card-header>
@@ -29,11 +43,13 @@
       </mat-card-header>
       <mat-card-content>
         <p>Estado Atual: {{ operacao.estado }}</p>
-        <p *ngIf="valor">Valor Do Periodo: <span>R$ {{valor.valorDoPeriodo}}</span></p>
+        <p *ngIf="valor">
+          Valor Do Periodo: <span>R$ {{ valor.valorDoPeriodo }}</span>
+        </p>
       </mat-card-content>
     </mat-card>
   </div>
-  
+
   <div *ngIf="operacao">
     <button
       mat-raised-button
@@ -49,6 +65,7 @@
       color="primary"
       type="button"
       value="Finalizar"
+      [disabled]="valorNaoCalculado"
       (click)="finalizaOpeacao()"
     >
       Finalizar

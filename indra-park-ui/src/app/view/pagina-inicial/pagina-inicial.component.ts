@@ -7,11 +7,16 @@ import { OperacoesService } from 'src/app/services/operacoes.service';
   styleUrls: ['./pagina-inicial.component.css']
 })
 export class PaginaInicialComponent implements OnInit {
-  operacoes: any;
+  
+  operacoes: any;  
 
   constructor(private service: OperacoesService) {}
 
   ngOnInit() {
+    this.getOperacoes();
+  }
+
+  getOperacoes() {
     this.service
       .getOperacoesDoDia()
       .subscribe(res => (this.operacoes = res), error => console.log(error));

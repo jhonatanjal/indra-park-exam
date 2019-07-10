@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { OperacoesService } from '../../services/operacoes.service';
 import { Router } from '@angular/router';
 
@@ -19,12 +19,16 @@ export class FormEntradaComponent implements OnInit {
   ) {
     this.modelosVeiculo = ['CARRO', 'MOTO', 'CAMINHAO', 'CAMINHONETE'];
     this.formEntrada = this.formBuilder.group({
-      placa: '',
+      placa: ['', [Validators.required, Validators.pattern('[a-zA-Z0-9]{7}')]],
       modelo: ['CARRO']
     });
   }
 
   ngOnInit() {}
+
+  get placa() {
+    return this.formEntrada.get("placa")
+  }
 
   onSubmit(veiculo) {
     this.service.realizaEntrada(veiculo).subscribe(res => {

@@ -11,6 +11,8 @@ export class ListaOperacoesComponent implements OnInit {
 
   @Input() operacoes;
   @Output() filtro = new EventEmitter();
+  @Output() reset = new EventEmitter();
+  filtroAtivo: boolean = false;
 
   formFiltro = this.fb.group({
     placa: [''],
@@ -30,6 +32,13 @@ export class ListaOperacoesComponent implements OnInit {
 
   filtraOperacoes(filtros) {
     this.filtro.emit(filtros);
+    this.filtroAtivo = true;
+  }
+
+  limpaFiltros() {
+    this.filtroAtivo = false;
+    this.reset.emit();
+    this.formFiltro.reset();
   }
 
   vaiParaFormSaida(placa) {

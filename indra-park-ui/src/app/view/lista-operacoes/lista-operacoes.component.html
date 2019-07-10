@@ -1,34 +1,39 @@
 <h2>Operações do dia</h2>
 <div class="filtro-form">
-  <form [formGroup]="formFiltro" (ngSubmit)="filtraOperacoes(formFiltro.value)">    
-      <!-- <label for="placa">Placa</label>
-      <input type="text" id="placa" formControlName="placa"> -->
-      <mat-form-field>
-        <mat-label>Placa</mat-label>
-        <input matInput placeholder="RTY3234" formControlName="placa">
-      </mat-form-field>
-    
-      <!-- <label for="dataInicial">Data Inicial</label>
-      <input type="date" id="dataInicial" formControlName="dataInicial"> -->
-      <mat-form-field>
-        <mat-label>Data Inicial</mat-label>
-        <input type="date" matInput formControlName="dataInicial">
-      </mat-form-field>
-    
-      <!-- <label for="dataFinal">Data Final</label>
-      <input type="date" id="dataFinal" formControlName="dataFinal"> -->
-      <mat-form-field>
-        <mat-label>Data Final</mat-label>
-        <input type="date" matInput formControlName="dataFinal">
-      </mat-form-field>
-    
-    
-      <button type="submit" mat-raised-button color="basic">Filtrar</button>
-    
+  <form [formGroup]="formFiltro" (ngSubmit)="filtraOperacoes(formFiltro.value)">
+    <mat-form-field>
+      <mat-label>Placa</mat-label>
+      <input
+        matInput
+        placeholder="RTY3234"
+        formControlName="placa"
+        class="form-campo-placa"
+      />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Data Inicial</mat-label>
+      <input type="date" matInput formControlName="dataInicial" />
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Data Final</mat-label>
+      <input type="date" matInput formControlName="dataFinal" />
+    </mat-form-field>
+
+    <button type="submit" mat-flat-button color="primary">Filtrar</button>
+    <button
+      *ngIf="filtroAtivo"
+      type="reset"
+      mat-flat-button
+      color="basic"
+      (click)="limpaFiltros()"      
+    >
+      Limpar Filtros
+    </button>
   </form>
 </div>
 <table mat-table [dataSource]="operacoes" class="mat-elevation-z8">
-
   <!-- Placa Column -->
   <ng-container matColumnDef="placa">
     <th mat-header-cell *matHeaderCellDef>Placa</th>

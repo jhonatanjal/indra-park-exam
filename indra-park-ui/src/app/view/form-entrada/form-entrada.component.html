@@ -5,8 +5,16 @@
       <div>
         <mat-form-field appearance="outline">
           <mat-label>Placa</mat-label>
-          <input matInput placeholder="RTY3234" formControlName="placa" required>
+          <input matInput placeholder="RTY3234" formControlName="placa" required class="form-campo-placa">
         </mat-form-field>
+        <div *ngIf="placa.invalid && (placa.dirty || placa.touched)">
+          <p *ngIf="placa.errors.required" class="form-mensagem-erro">
+            Campo placa é obrigatorio
+          </p>
+          <p *ngIf="placa.errors.pattern" class="form-mensagem-erro">
+            O campo deve ter somente 7 dígitos e ser composto de letras e números.
+          </p>
+        </div>
       </div>
       <div>
         <mat-form-field>
