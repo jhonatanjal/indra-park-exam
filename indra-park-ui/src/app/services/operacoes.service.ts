@@ -14,12 +14,6 @@ export class OperacoesService {
 
   constructor(private http: HttpClient) {}
 
-  private getHeaders(): HttpHeaders {
-    let headers = new HttpHeaders();
-    headers = headers.append('Content-Type', 'application/json');
-    return headers;
-  }
-
   getOperacoesDoDia() {
     return this.http.get(this.url, httpOptions);
   }
