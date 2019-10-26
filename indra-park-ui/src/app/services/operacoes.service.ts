@@ -34,18 +34,18 @@ export class OperacoesService {
   }
 
   getOperacaoDeEntradaDoVeiculo(placa) {
-    return this.http.get(this.url + `/entrada?veiculoPlaca=${placa}`, httpOptions);
+    return this.http.get(this.url + `entrada?veiculoPlaca=${placa}`, httpOptions);
   }
 
   getValorEstacionamento(operacaoId: number) {
-    return this.http.get(this.url + `/valorCobrado?idOperacao=${operacaoId}`, httpOptions);
+    return this.http.get(this.url + `valorCobrado?operacaoId=${operacaoId}`, httpOptions);
   }
 
   finalizaOperacao(operacaoId: number) {
-    return this.http.put(this.url + `/${operacaoId}`, httpOptions);
+    return this.http.put(this.url + `${operacaoId}`, httpOptions);
   }
 
   getEstatisticasDaSemana() {
-    return this.http.get(this.url + '/estatisticas', httpOptions);
+    return this.http.get(this.url + 'estatisticas', httpOptions);
   }
 }
