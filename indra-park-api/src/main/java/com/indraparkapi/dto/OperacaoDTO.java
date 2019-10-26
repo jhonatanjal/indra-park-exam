@@ -4,13 +4,19 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.indraparkapi.model.EstadoOperacao;
 import com.indraparkapi.model.ModeloVeiculo;
 import com.indraparkapi.model.Operacao;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@Getter
+@NoArgsConstructor
 public class OperacaoDTO {
 
     private Long id;
+
     private String placa;
+
     private ModeloVeiculo modeloVeiculo;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
@@ -28,29 +34,5 @@ public class OperacaoDTO {
         this.dataHoraEntrada = operacao.getDataHoraEntrada();
         this.dataHoraSaida = operacao.getDataHoraSaida();
         this.estado = operacao.getEstado();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getPlaca() {
-        return placa;
-    }
-
-    public ModeloVeiculo getModeloVeiculo() {
-        return modeloVeiculo;
-    }
-
-    public LocalDateTime getDataHoraEntrada() {
-        return dataHoraEntrada;
-    }
-
-    public LocalDateTime getDataHoraSaida() {
-        return dataHoraSaida;
-    }
-
-    public EstadoOperacao getEstado() {
-        return estado;
     }
 }

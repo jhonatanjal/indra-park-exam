@@ -1,95 +1,81 @@
 package com.indraparkapi.model;
 
+import com.indraparkapi.exception.OperacaoJaEstaFinalizadaException;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Operacao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Enumerated(EnumType.STRING)
     private EstadoOperacao estado;
 
     private LocalDateTime dataHoraEntrada;
+
     private LocalDateTime dataHoraSaida;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private Veiculo veiculo;
 
-    @Deprecated
-    public Operacao() {
-    }
-
-    public Operacao(LocalDateTime dataHoraEntrada) {
+    public Operacao(LocalDateTime dataHoraEntrada, Veiculo veiculo) {
         this.dataHoraEntrada = dataHoraEntrada;
+        this.veiculo = veiculo;
         this.estado = EstadoOperacao.ENTRADA;
     }
 
     public void finalizaOperacao() {
-        if (estado.equals(EstadoOperacao.SAIDA)) {
-            throw new RuntimeException("Esta Operação ja esta finalizada");
+        if (estaFinalizada()) {
+            throw new OperacaoJaEstaFinalizadaException();
         }
-        if (this.dataHoraSaida == null) {
+
+        if (Objects.isNull(dataHoraSaida)) {
             this.dataHoraSaida = LocalDateTime.now();
         }
+
         this.estado = EstadoOperacao.SAIDA;
     }
 
+    private boolean estaFinalizada() {
+        return estado.isSaida() && Objects.nonNull(dataHoraSaida);
+    }
+
     public BigDecimal calculaValorDoPeriodo() {
-        if (this.dataHoraSaida == null) {
-            this.dataHoraSaida = LocalDateTime.now();
+        if (!estaFinalizada()) {
+            finalizaOperacao();
         }
 
-        BigDecimal minutos = BigDecimal.valueOf(MINUTES.between(this.dataHoraEntrada, this.dataHoraSaida));
+        BigDecimal minutosEntreEntradaEhSaida = BigDecimal.valueOf(MINUTES.between(
+                this.dataHoraEntrada, this.dataHoraSaida));
 
-        BigDecimal resutado = minutos.divide(new BigDecimal(60), 2, RoundingMode.CEILING);
+        BigDecimal horasEstacionadas = converteMinutosParaHoras(minutosEntreEntradaEhSaida);
 
-        return resutado.multiply(this.veiculo.getModelo().getPrecoEstacionamentoPorHora());
+        return mutiplicaHorasEstacionadasPorPrecoDaHoraDeEstacionamento(horasEstacionadas);
     }
 
-    public Long getId() {
-        return id;
+    private BigDecimal mutiplicaHorasEstacionadasPorPrecoDaHoraDeEstacionamento(BigDecimal horasEstacionadas) {
+        return horasEstacionadas.multiply(this.veiculo.getModelo().getPrecoEstacionamentoPorHora());
     }
 
-    public EstadoOperacao getEstado() {
-        return estado;
-    }
-
-    void setVeiculo(Veiculo veiculo) {
-        this.veiculo = veiculo;
-    }
-
-    public Veiculo getVeiculo() {
-        return veiculo;
-    }
-
-    public LocalDateTime getDataHoraEntrada() {
-        return dataHoraEntrada;
-    }
-
-    public LocalDateTime getDataHoraSaida() {
-        return dataHoraSaida;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Operacao operacao = (Operacao) o;
-
-        return id != null ? id.equals(operacao.id) : operacao.id == null;
-    }
-
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+    private BigDecimal converteMinutosParaHoras(BigDecimal minutos) {
+        return minutos.divide(new BigDecimal(60), 2, RoundingMode.CEILING);
     }
 }

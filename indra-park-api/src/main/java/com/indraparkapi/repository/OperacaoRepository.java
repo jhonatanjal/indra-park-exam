@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OperacaoRepository extends JpaRepository<Operacao, Long> {
+
     List<Operacao> findByDataHoraEntradaIsBetweenOrEstadoIs(LocalDateTime start,
                                                             LocalDateTime end,
                                                             EstadoOperacao estado);
@@ -18,4 +20,8 @@ public interface OperacaoRepository extends JpaRepository<Operacao, Long> {
     Integer countByDataHoraEntradaBetweenAndVeiculo_Modelo(LocalDateTime start,
                                                            LocalDateTime end,
                                                            ModeloVeiculo modelo);
+
+    Optional<Operacao> findByVeiculoPlacaIgnoreCaseAndEstado(String placa, EstadoOperacao estado);
+
+    List<Operacao> findByVeiculoPlacaIgnoreCase(String placaVeiculo);
 }
